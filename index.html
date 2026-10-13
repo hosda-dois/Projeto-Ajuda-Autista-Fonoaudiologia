@@ -1,1 +1,875 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART FONO - Análise da Fala</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        smart: {
+                            bg: '#F4F3FB',
+                            sidebar: '#ECE9FA',
+                            active: '#6B52ED',
+                            hover: '#5B42DD',
+                            card: '#FFFFFF',
+                            text: '#2D284C',
+                            muted: '#8A85A5',
+                            border: '#E3DFFA',
+                            blueTab: '#D8ECFF',
+                            purpleTab: '#ECE0FD',
+                            pinkTab: '#FFDFEC'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'smart': '0 8px 30px rgba(107, 82, 237, 0.06)',
+                        'floating': '0 10px 25px -5px rgba(107, 82, 237, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
 
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #F4F3FB;
+            color: #2D284C;
+        }
+
+        .folder-card {
+            position: relative;
+            background: #ffffff;
+            border-radius: 0 18px 18px 18px;
+            box-shadow: 0 6px 20px rgba(107, 82, 237, 0.05);
+            border: 1px solid #EBE8FC;
+            transition: all 0.25s ease;
+        }
+
+        .folder-card::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: -1px;
+            width: 90px;
+            height: 14px;
+            border-radius: 12px 12px 0 0;
+            border-top: 1px solid #EBE8FC;
+            border-left: 1px solid #EBE8FC;
+            border-right: 1px solid #EBE8FC;
+        }
+
+        .folder-blue::before { background-color: #D8ECFF; }
+        .folder-purple::before { background-color: #ECE0FD; }
+        .folder-pink::before { background-color: #FFDFEC; }
+
+        .folder-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(107, 82, 237, 0.12);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F4F3FB;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #C2B8F6;
+            border-radius: 999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6B52ED;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex items-center justify-center bg-[#F4F3FB]">
+
+    <div id="app" class="w-full h-full max-w-[1440px] max-h-[920px] bg-[#F4F3FB] flex overflow-hidden relative md:p-3">
+        
+        <!-- SPLASH INTRO SCREEN -->
+        <div id="splash-screen" class="absolute inset-0 z-50 bg-[#F4F3FB] flex flex-col items-center justify-center cursor-pointer transition-all duration-500" onclick="hideSplash()">
+            <div class="flex flex-col items-center animate-pulse">
+                <div class="w-60 h-60 rounded-[44px] p-6 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden transition-transform duration-300 hover:scale-105"
+                     style="background: linear-gradient(135deg, #81c8ff 0%, #d4b4ff 50%, #fba6e2 100%);">
+                    
+                    <div class="w-full flex flex-col items-center justify-center space-y-3">
+                        <svg viewBox="0 0 200 110" class="w-44 h-[90px] drop-shadow-md">
+                            <defs>
+                                <linearGradient id="smile-inner-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#91d5ff" />
+                                    <stop offset="50%" stop-color="#f8c2e8" />
+                                    <stop offset="100%" stop-color="#e2b5ff" />
+                                </linearGradient>
+                                <linearGradient id="smile-outer-stroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#2D1280" />
+                                    <stop offset="100%" stop-color="#4B27B3" />
+                                </linearGradient>
+                            </defs>
+
+                            <path d="M 20 28 C 45 10, 155 10, 180 28 C 160 85, 40 85, 20 28 Z" 
+                                  fill="url(#smile-inner-grad)" 
+                                  stroke="url(#smile-outer-stroke)" 
+                                  stroke-width="10" 
+                                  stroke-linejoin="round"
+                                  stroke-linecap="round" />
+
+                            <path d="M 27 31 C 50 16, 150 16, 173 31 C 155 78, 45 78, 27 31 Z" 
+                                  fill="none" 
+                                  stroke="#FFFFFF" 
+                                  stroke-width="6" 
+                                  stroke-linejoin="round"
+                                  stroke-linecap="round" />
+
+                            <path d="M 52 46 C 58 38, 64 38, 70 46 C 74 52, 78 52, 80 46" 
+                                  fill="none" 
+                                  stroke="#200B63" 
+                                  stroke-width="7" 
+                                  stroke-linecap="round" />
+                            
+                            <rect x="91" y="36" width="18" height="38" rx="9" 
+                                  fill="url(#smile-inner-grad)" 
+                                  stroke="#200B63" 
+                                  stroke-width="7" />
+
+                            <path d="M 120 46 C 122 52, 126 52, 130 46 C 136 38, 142 38, 148 46" 
+                                  fill="none" 
+                                  stroke="#200B63" 
+                                  stroke-width="7" 
+                                  stroke-linecap="round" />
+                        </svg>
+
+                        <div class="text-center leading-none tracking-tight">
+                            <div class="text-3xl font-black text-[#150742] tracking-wider">SMART</div>
+                            <div class="text-3xl font-extrabold text-[#5B48EE] tracking-wider mt-0.5">FONO</div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="mt-8 text-xs font-bold text-[#6B52ED] bg-white px-5 py-2.5 rounded-full shadow-md border border-[#E3DFFA]">Toque para entrar no aplicativo</p>
+            </div>
+        </div>
+
+        <!-- MAIN APPLICATION -->
+        <div class="w-full h-full bg-white rounded-3xl shadow-xl flex overflow-hidden border border-[#E3DFFA]">
+
+            <!-- SIDEBAR LEFT -->
+            <aside class="w-72 bg-[#ECE9FA] flex flex-col justify-between shrink-0 p-5 hidden md:flex border-r border-[#E0DCF7]">
+                <div class="space-y-6">
+                    
+                    <div class="flex flex-col items-center justify-center pt-2 pb-2 text-center group cursor-pointer" onclick="switchView('pacientes')">
+                        <div class="w-28 h-16 mb-1 flex items-center justify-center">
+                            <svg viewBox="0 0 200 110" class="w-full h-full drop-shadow-sm">
+                                <path d="M 20 28 C 45 10, 155 10, 180 28 C 160 85, 40 85, 20 28 Z" 
+                                      fill="url(#smile-inner-grad)" 
+                                      stroke="#2A1065" 
+                                      stroke-width="9" 
+                                      stroke-linejoin="round"
+                                      stroke-linecap="round" />
+
+                                <path d="M 27 31 C 50 16, 150 16, 173 31 C 155 78, 45 78, 27 31 Z" 
+                                      fill="none" 
+                                      stroke="#FFFFFF" 
+                                      stroke-width="5" 
+                                      stroke-linejoin="round"
+                                      stroke-linecap="round" />
+
+                                <path d="M 52 46 C 58 38, 64 38, 70 46 C 74 52, 78 52, 80 46" 
+                                      fill="none" 
+                                      stroke="#200B63" 
+                                      stroke-width="6.5" 
+                                      stroke-linecap="round" />
+                                
+                                <rect x="91" y="36" width="18" height="38" rx="9" 
+                                      fill="url(#smile-inner-grad)" 
+                                      stroke="#200B63" 
+                                      stroke-width="6.5" />
+
+                                <path d="M 120 46 C 122 52, 126 52, 130 46 C 136 38, 142 38, 148 46" 
+                                      fill="none" 
+                                      stroke="#200B63" 
+                                      stroke-width="6.5" 
+                                      stroke-linecap="round" />
+                            </svg>
+                        </div>
+                        <div class="leading-none text-center">
+                            <span class="text-xl font-black text-[#150742] tracking-wider block">SMART</span>
+                            <span class="text-xl font-black text-[#5B48EE] tracking-wider block mt-0.5">FONO</span>
+                        </div>
+                    </div>
+
+                    <!-- MENU ITEMS -->
+                    <nav class="space-y-1.5">
+                        <button onclick="switchView('pacientes')" id="menu-pacientes" class="w-full flex items-center space-x-3.5 px-4 py-3 rounded-2xl bg-[#6B52ED] text-white font-semibold shadow-md transition-all">
+                            <i class="fa-solid fa-house text-lg w-5"></i>
+                            <span class="text-sm">Pacientes</span>
+                        </button>
+
+                        <button onclick="openFeatureModal('Gravação automática dos áudios')" class="w-full flex items-center space-x-3.5 px-4 py-2.5 rounded-2xl text-[#524B77] hover:bg-white/60 font-medium text-sm transition-all text-left">
+                            <i class="fa-solid fa-microphone text-lg text-[#6B52ED] w-5"></i>
+                            <span>Gravação automática dos áudios</span>
+                        </button>
+
+                        <button onclick="openFeatureModal('Transcrição ortográfica e fonética')" class="w-full flex items-center space-x-3.5 px-4 py-2.5 rounded-2xl text-[#524B77] hover:bg-white/60 font-medium text-sm transition-all text-left">
+                            <i class="fa-solid fa-file-lines text-lg text-[#6B52ED] w-5"></i>
+                            <span>Transcrição ortográfica e fonética</span>
+                        </button>
+
+                        <button onclick="openFeatureModal('Separação dos sílabas')" class="w-full flex items-center space-x-3.5 px-4 py-2.5 rounded-2xl text-[#524B77] hover:bg-white/60 font-medium text-sm transition-all text-left">
+                            <i class="fa-solid fa-wave-square text-lg text-[#6B52ED] w-5"></i>
+                            <span>Separação dos sílabas</span>
+                        </button>
+
+                        <button onclick="openFeatureModal('Identificação dos fonemas')" class="w-full flex items-center space-x-3.5 px-4 py-2.5 rounded-2xl text-[#524B77] hover:bg-white/60 font-medium text-sm transition-all text-left">
+                            <i class="fa-solid fa-magnifying-glass text-lg text-[#6B52ED] w-5"></i>
+                            <span>Identificação dos fonemas</span>
+                        </button>
+
+                        <button onclick="openFeatureModal('Contagem de disfluências')" class="w-full flex items-center space-x-3.5 px-4 py-2.5 rounded-2xl text-[#524B77] hover:bg-white/60 font-medium text-sm transition-all text-left">
+                            <i class="fa-solid fa-chart-simple text-lg text-[#6B52ED] w-5"></i>
+                            <span>Contagem de disfluências</span>
+                        </button>
+
+                        <button onclick="openFeatureModal('Relatórios de evolução')" class="w-full flex items-center space-x-3.5 px-4 py-2.5 rounded-2xl text-[#524B77] hover:bg-white/60 font-medium text-sm transition-all text-left">
+                            <i class="fa-solid fa-[#6B52ED] fa-rectangle-list text-lg text-[#6B52ED] w-5"></i>
+                            <span>Relatórios de evolução</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div>
+                    <button onclick="openHelpModal()" class="w-full bg-[#F5F3FF] hover:bg-white border border-[#DDD6FE] p-3.5 rounded-2xl flex items-center justify-between text-[#524B77] transition-all shadow-sm">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-[#6B52ED]/10 text-[#6B52ED] flex items-center justify-center">
+                                <i class="fa-regular fa-comment-dots text-sm"></i>
+                            </div>
+                            <span class="text-xs font-semibold">Estamos aqui para ajudar</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT AREA -->
+            <main class="flex-1 flex flex-col bg-[#F9F8FE] overflow-hidden relative">
+
+                <!-- DASHBOARD VIEW: PATIENTS LIST -->
+                <div id="view-pacientes-list" class="flex-1 flex flex-col p-6 sm:p-8 overflow-y-auto">
+                    
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8">
+                        <div class="relative flex-1 max-w-xl">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                            </span>
+                            <input type="text" id="patientSearch" onkeyup="filterPatients()" placeholder="Buscar paciente..." class="w-full pl-11 pr-4 py-3 bg-white border border-[#E3DFFA] rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6B52ED] shadow-sm transition-all">
+                        </div>
+
+                        <button onclick="openNewPatientModal()" class="bg-[#6B52ED] hover:bg-[#5B42DD] text-white px-6 py-3 rounded-2xl font-semibold text-sm shadow-md flex items-center justify-center space-x-2 transition-all shrink-0">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                            <span>Novo paciente</span>
+                        </button>
+                    </div>
+
+                    <h2 class="text-2xl font-bold text-[#2D284C] mb-8">Pacientes</h2>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10 pt-2" id="patientsGrid">
+
+                        <!-- Lucas Card -->
+                        <div onclick="openPatientDetail('lucas')" class="folder-card folder-blue p-6 cursor-pointer flex flex-col items-center text-center">
+                            <div class="w-full flex justify-end text-slate-300 hover:text-slate-600 mb-1">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </div>
+                            <div class="w-20 h-20 rounded-full bg-[#D8ECFF] flex items-center justify-center mb-3 overflow-hidden border-2 border-white shadow-sm">
+                                <svg viewBox="0 0 100 100" class="w-full h-full">
+                                    <circle cx="50" cy="50" r="50" fill="#CCE5FF"/>
+                                    <path d="M 25,85 C 25,65 35,60 50,60 C 65,60 75,65 75,85 Z" fill="#6B52ED"/>
+                                    <circle cx="50" cy="45" r="22" fill="#FFD5C2"/>
+                                    <path d="M 28,42 C 28,25 35,20 50,20 C 65,20 72,25 72,42 C 68,32 60,30 50,30 C 40,30 32,32 28,42 Z" fill="#5A3A22"/>
+                                    <circle cx="43" cy="45" r="2.5" fill="#2D284C"/>
+                                    <circle cx="57" cy="45" r="2.5" fill="#2D284C"/>
+                                    <path d="M 44,54 Q 50,58 56,54" stroke="#E57373" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                </svg>
+                            </div>
+                            <h3 class="font-bold text-lg text-[#2D284C]">Lucas</h3>
+                            <p class="text-xs font-medium text-slate-400 mt-0.5">5 anos</p>
+                            <p class="text-xs font-semibold text-slate-500 mt-2">Distúrbio Fonológico</p>
+                        </div>
+
+                        <!-- Sabrina Card -->
+                        <div onclick="openPatientDetail('sabrina')" class="folder-card folder-purple p-6 cursor-pointer flex flex-col items-center text-center">
+                            <div class="w-full flex justify-end text-slate-300 hover:text-slate-600 mb-1">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </div>
+                            <div class="w-20 h-20 rounded-full bg-[#ECE0FD] flex items-center justify-center mb-3 overflow-hidden border-2 border-white shadow-sm">
+                                <svg viewBox="0 0 100 100" class="w-full h-full">
+                                    <circle cx="50" cy="50" r="50" fill="#E8D9FF"/>
+                                    <path d="M 25,85 C 25,65 35,60 50,60 C 65,60 75,65 75,85 Z" fill="#FF85B3"/>
+                                    <circle cx="50" cy="45" r="22" fill="#FFD5C2"/>
+                                    <path d="M 20,35 Q 28,20 50,20 Q 72,20 80,35 C 75,50 70,25 50,25 C 30,25 25,50 20,35 Z" fill="#6A3805"/>
+                                    <circle cx="43" cy="45" r="2.5" fill="#2D284C"/>
+                                    <circle cx="57" cy="45" r="2.5" fill="#2D284C"/>
+                                    <path d="M 44,54 Q 50,58 56,54" stroke="#E57373" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                </svg>
+                            </div>
+                            <h3 class="font-bold text-lg text-[#2D284C]">Sabrina</h3>
+                            <p class="text-xs font-medium text-slate-400 mt-0.5">6 anos</p>
+                            <p class="text-xs font-semibold text-slate-500 mt-2">Disfluência</p>
+                        </div>
+
+                        <!-- Laura Card -->
+                        <div onclick="openPatientDetail('laura')" class="folder-card folder-pink p-6 cursor-pointer flex flex-col items-center text-center">
+                            <div class="w-full flex justify-end text-slate-300 hover:text-slate-600 mb-1">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </div>
+                            <div class="w-20 h-20 rounded-full bg-[#FFDFEC] flex items-center justify-center mb-3 overflow-hidden border-2 border-white shadow-sm">
+                                <svg viewBox="0 0 100 100" class="w-full h-full">
+                                    <circle cx="50" cy="50" r="50" fill="#FFD1E3"/>
+                                    <path d="M 25,85 C 25,65 35,60 50,60 C 65,60 75,65 75,85 Z" fill="#FF9E67"/>
+                                    <circle cx="50" cy="45" r="22" fill="#FFE0BD"/>
+                                    <path d="M 22,40 C 22,22 35,18 50,18 C 65,18 78,22 78,40 C 72,28 60,26 50,26 C 40,26 28,28 22,40 Z" fill="#4A2810"/>
+                                    <circle cx="43" cy="45" r="2.5" fill="#2D284C"/>
+                                    <circle cx="57" cy="45" r="2.5" fill="#2D284C"/>
+                                    <path d="M 44,54 Q 50,58 56,54" stroke="#E57373" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                </svg>
+                            </div>
+                            <h3 class="font-bold text-lg text-[#2D284C]">Laura</h3>
+                            <p class="text-xs font-medium text-slate-400 mt-0.5">4 anos</p>
+                            <p class="text-xs font-semibold text-slate-500 mt-2">Atraso de Fala</p>
+                        </div>
+
+                        <!-- Adicionar Novo Paciente Card -->
+                        <div onclick="openNewPatientModal()" class="border-2 border-dashed border-[#DDD6FE] bg-white/50 hover:bg-white rounded-2xl p-6 cursor-pointer flex flex-col items-center justify-center text-center transition-all min-h-[220px] group">
+                            <div class="w-14 h-14 rounded-full bg-[#ECE9FA] group-hover:bg-[#6B52ED] text-[#6B52ED] group-hover:text-white flex items-center justify-center text-xl mb-3 transition-all">
+                                <i class="fa-solid fa-plus"></i>
+                            </div>
+                            <p class="text-sm font-bold text-[#524B77] group-hover:text-[#6B52ED]">Adicionar<br>novo paciente</p>
+                        </div>
+
+                    </div>
+
+                    <!-- Floating Microphone Button -->
+                    <div class="fixed bottom-8 right-8 z-20 flex flex-col items-center">
+                        <button onclick="triggerMicRecord()" class="w-16 h-16 bg-[#6B52ED] hover:bg-[#5B42DD] text-white rounded-full flex items-center justify-center shadow-floating transition-all transform hover:scale-105 active:scale-95">
+                            <i class="fa-solid fa-microphone text-2xl"></i>
+                        </button>
+                        <span class="text-xs font-bold text-[#524B77] mt-2 bg-white/80 backdrop-blur px-2 py-0.5 rounded-md shadow-xs">Microfone</span>
+                    </div>
+
+                </div>
+
+                <!-- TELA DO PACIENTE (DETAILED VIEW) -->
+                <div id="view-paciente-detail" class="flex-1 flex flex-col hidden overflow-y-auto p-6 sm:p-8">
+                    
+                    <div class="mb-4">
+                        <button onclick="switchView('pacientes')" class="inline-flex items-center space-x-2 text-sm font-semibold text-[#6B52ED] hover:underline">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                            <span>Pacientes</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                        <div class="lg:col-span-2 space-y-6">
+
+                            <div class="bg-white p-6 rounded-3xl border border-[#E3DFFA] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-20 h-20 rounded-full bg-[#D8ECFF] overflow-hidden border-2 border-white shadow-sm shrink-0">
+                                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                                            <circle cx="50" cy="50" r="50" fill="#CCE5FF"/>
+                                            <path d="M 25,85 C 25,65 35,60 50,60 C 65,60 75,65 75,85 Z" fill="#6B52ED"/>
+                                            <circle cx="50" cy="45" r="22" fill="#FFD5C2"/>
+                                            <path d="M 28,42 C 28,25 35,20 50,20 C 65,20 72,25 72,42 C 68,32 60,30 50,30 C 40,30 32,32 28,42 Z" fill="#5A3A22"/>
+                                            <circle cx="43" cy="45" r="2.5" fill="#2D284C"/>
+                                            <circle cx="57" cy="45" r="2.5" fill="#2D284C"/>
+                                            <path d="M 44,54 Q 50,58 56,54" stroke="#E57373" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h2 id="patient-detail-name" class="text-2xl font-bold text-[#2D284C]">Lucas</h2>
+                                        <div class="flex items-center space-x-2 text-xs text-slate-500 font-medium mt-1">
+                                            <span id="patient-detail-age">5 anos</span>
+                                            <span>•</span>
+                                            <span id="patient-detail-condition">Distúrbio Fonológico</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="openEditPatientModal()" class="border border-[#E3DFFA] hover:bg-[#F4F3FB] text-[#524B77] px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all">
+                                    <i class="fa-solid fa-pen text-[10px]"></i>
+                                    <span>Editar dados</span>
+                                </button>
+                            </div>
+
+                            <div class="space-y-3">
+                                <h3 class="font-bold text-sm text-[#2D284C]">Evolução da Fono</h3>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <button onclick="triggerMicRecord()" class="bg-white hover:bg-[#FAF8FE] border border-[#E3DFFA] p-4 rounded-2xl flex items-center justify-between text-left group shadow-xs transition-all">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-xl bg-[#ECE0FD] text-[#6B52ED] flex items-center justify-center font-bold">
+                                                <i class="fa-solid fa-microphone"></i>
+                                            </div>
+                                            <span class="text-xs font-bold text-[#2D284C] group-hover:text-[#6B52ED]">Gravar<br>sessão</span>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-right text-xs text-slate-300 group-hover:text-[#6B52ED]"></i>
+                                    </button>
+
+                                    <button onclick="openFeatureModal('Transcrever áudio')" class="bg-white hover:bg-[#FAF8FE] border border-[#E3DFFA] p-4 rounded-2xl flex items-center justify-between text-left group shadow-xs transition-all">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-xl bg-[#D8ECFF] text-[#2B7FFF] flex items-center justify-center font-bold">
+                                                <i class="fa-solid fa-file-lines"></i>
+                                            </div>
+                                            <span class="text-xs font-bold text-[#2D284C] group-hover:text-[#2B7FFF]">Transcrever<br>áudio</span>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-right text-xs text-slate-300 group-hover:text-[#2B7FFF]"></i>
+                                    </button>
+
+                                    <button onclick="openFeatureModal('Gerar relatório')" class="bg-white hover:bg-[#FAF8FE] border border-[#E3DFFA] p-4 rounded-2xl flex items-center justify-between text-left group shadow-xs transition-all">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-xl bg-[#FFEBD8] text-[#FF8512] flex items-center justify-center font-bold">
+                                                <i class="fa-solid fa-chart-simple"></i>
+                                            </div>
+                                            <span class="text-xs font-bold text-[#2D284C] group-hover:text-[#FF8512]">Gerar<br>relatório</span>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-right text-xs text-slate-300 group-hover:text-[#FF8512]"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-3xl border border-[#E3DFFA] shadow-sm space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-bold text-sm text-[#2D284C]">Última sessão</h3>
+                                    <span class="text-xs font-medium text-slate-400">Dia 17 de agosto de 2024</span>
+                                </div>
+
+                                <div class="bg-[#FAF9FE] border border-[#E3DFFA] p-4 rounded-2xl flex items-center justify-between gap-4">
+                                    <div class="flex items-center space-x-3 flex-1">
+                                        <button onclick="toggleAudioPlay()" id="audioPlayBtn" class="w-10 h-10 rounded-full bg-[#6B52ED] hover:bg-[#5B42DD] text-white flex items-center justify-center shadow-md transition-all shrink-0">
+                                            <i id="audioPlayIcon" class="fa-solid fa-play text-sm ml-0.5"></i>
+                                        </button>
+
+                                        <div class="flex-1 flex items-center space-x-1 h-8 overflow-hidden">
+                                            <span class="w-1 bg-[#6B52ED] h-3 rounded-full"></span>
+                                            <span class="w-1 bg-[#6B52ED] h-6 rounded-full"></span>
+                                            <span class="w-1 bg-[#6B52ED] h-8 rounded-full"></span>
+                                            <span class="w-1 bg-[#6B52ED] h-4 rounded-full"></span>
+                                            <span class="w-1 bg-[#6B52ED] h-7 rounded-full"></span>
+                                            <span class="w-1 bg-[#6B52ED] h-5 rounded-full"></span>
+                                            <span class="w-1 bg-[#C2B8F6] h-3 rounded-full"></span>
+                                            <span class="w-1 bg-[#C2B8F6] h-6 rounded-full"></span>
+                                            <span class="w-1 bg-[#C2B8F6] h-4 rounded-full"></span>
+                                            <span class="w-1 bg-[#C2B8F6] h-8 rounded-full"></span>
+                                            <span class="w-1 bg-[#C2B8F6] h-5 rounded-full"></span>
+                                            <span class="w-1 bg-[#C2B8F6] h-2 rounded-full"></span>
+                                            <span class="w-1 bg-[#C2B8F6] h-6 rounded-full"></span>
+                                            <span class="w-1 bg-[#C2B8F6] h-4 rounded-full"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center space-x-3 shrink-0">
+                                        <span id="audioTimer" class="text-xs font-mono font-medium text-slate-500">00:00 / 02:15</span>
+                                        <button class="text-slate-300 hover:text-slate-600"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div onclick="openSubDetail('Transcrição ortográfica')" class="p-3 bg-[#FAF9FE] hover:bg-[#F0ECFC] rounded-2xl border border-[#E3DFFA] flex items-center space-x-3 cursor-pointer transition-all">
+                                        <div class="w-8 h-8 rounded-xl bg-white text-[#6B52ED] flex items-center justify-center text-xs font-bold border border-[#E3DFFA]">
+                                            <i class="fa-regular fa-file-lines"></i>
+                                        </div>
+                                        <span class="text-xs font-semibold text-[#2D284C]">Transcrição ortográfica</span>
+                                    </div>
+
+                                    <div onclick="openSubDetail('Transcrição fonética')" class="p-3 bg-[#FAF9FE] hover:bg-[#F0ECFC] rounded-2xl border border-[#E3DFFA] flex items-center space-x-3 cursor-pointer transition-all">
+                                        <div class="w-8 h-8 rounded-xl bg-white text-[#6B52ED] flex items-center justify-center text-xs font-bold border border-[#E3DFFA]">
+                                            <span>[a]</span>
+                                        </div>
+                                        <span class="text-xs font-semibold text-[#2D284C]">Transcrição fonética</span>
+                                    </div>
+
+                                    <div onclick="openSubDetail('Relatório da sessão')" class="p-3 bg-[#FAF9FE] hover:bg-[#F0ECFC] rounded-2xl border border-[#E3DFFA] flex items-center space-x-3 cursor-pointer transition-all">
+                                        <div class="w-8 h-8 rounded-xl bg-white text-[#6B52ED] flex items-center justify-center text-xs font-bold border border-[#E3DFFA]">
+                                            <i class="fa-regular fa-clipboard"></i>
+                                        </div>
+                                        <span class="text-xs font-semibold text-[#2D284C]">Relatório da sessão</span>
+                                    </div>
+                                </div>
+
+                                <div onclick="openFeatureModal('Interação e Comunicação')" class="p-3.5 bg-[#FAF9FE] hover:bg-[#F0ECFC] rounded-2xl border border-[#E3DFFA] flex items-center justify-between cursor-pointer transition-all">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 rounded-xl bg-[#6B52ED] text-white flex items-center justify-center text-xs">
+                                            <i class="fa-regular fa-comments"></i>
+                                        </div>
+                                        <span class="text-xs font-bold text-[#2D284C]">Interação e Comunicação</span>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-3xl border border-[#E3DFFA] shadow-sm space-y-4">
+                                <h3 class="font-bold text-sm text-[#2D284C]">Linha do Tempo de sessões</h3>
+
+                                <div class="relative pt-4 pb-2 px-2">
+                                    <div class="absolute top-1/2 left-6 right-6 h-0.5 bg-[#E3DFFA] -translate-y-1/2"></div>
+
+                                    <div class="flex justify-between relative z-10">
+                                        <div onclick="selectTimeline('17/08')" class="flex flex-col items-center cursor-pointer group">
+                                            <div class="w-6 h-6 rounded-full bg-[#6B52ED] border-4 border-[#ECE9FA] flex items-center justify-center text-white text-[10px] font-bold shadow-sm transition-all group-hover:scale-125"></div>
+                                            <span class="text-[11px] font-bold text-[#6B52ED] mt-2">17/08</span>
+                                        </div>
+
+                                        <div onclick="selectTimeline('26/08')" class="flex flex-col items-center cursor-pointer group">
+                                            <div class="w-5 h-5 rounded-full bg-white border-2 border-[#C2B8F6] flex items-center justify-center transition-all group-hover:scale-125"></div>
+                                            <span class="text-[11px] font-medium text-slate-400 mt-2">26/08</span>
+                                        </div>
+
+                                        <div onclick="selectTimeline('03/09')" class="flex flex-col items-center cursor-pointer group">
+                                            <div class="w-5 h-5 rounded-full bg-white border-2 border-[#C2B8F6] flex items-center justify-center transition-all group-hover:scale-125"></div>
+                                            <span class="text-[11px] font-medium text-slate-400 mt-2">03/09</span>
+                                        </div>
+
+                                        <div onclick="selectTimeline('10/09')" class="flex flex-col items-center cursor-pointer group">
+                                            <div class="w-5 h-5 rounded-full bg-white border-2 border-[#C2B8F6] flex items-center justify-center transition-all group-hover:scale-125"></div>
+                                            <span class="text-[11px] font-medium text-slate-400 mt-2">10/09</span>
+                                        </div>
+
+                                        <div onclick="selectTimeline('18/09')" class="flex flex-col items-center cursor-pointer group">
+                                            <div class="w-5 h-5 rounded-full bg-white border-2 border-[#C2B8F6] flex items-center justify-center transition-all group-hover:scale-125"></div>
+                                            <span class="text-[11px] font-medium text-slate-400 mt-2">18/09</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- PRONTUÁRIO -->
+                        <div class="space-y-6">
+                            <div class="bg-white p-6 rounded-3xl border border-[#E3DFFA] shadow-sm space-y-4">
+                                <div class="flex items-center justify-between pb-2 border-b border-[#F4F3FB]">
+                                    <h3 class="font-bold text-base text-[#2D284C]">Prontuário</h3>
+                                    <button onclick="addProntuarioItem()" class="w-8 h-8 rounded-full bg-[#6B52ED] hover:bg-[#5B42DD] text-white flex items-center justify-center text-xs shadow-md transition-all">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </button>
+                                </div>
+
+                                <div class="space-y-2.5" id="prontuario-list">
+                                    <div onclick="openProntuarioDetail('17/08/2024')" class="p-3.5 bg-[#FAF9FE] hover:bg-[#F0ECFC] rounded-2xl border border-[#E3DFFA] flex items-center justify-between cursor-pointer transition-all">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 rounded-xl bg-[#ECE0FD] text-[#6B52ED] flex items-center justify-center text-xs font-bold">
+                                                <i class="fa-regular fa-file-lines"></i>
+                                            </div>
+                                            <span class="text-xs font-semibold text-[#2D284C]">Data: 17/08/2024</span>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+                                    </div>
+
+                                    <div onclick="openProntuarioDetail('26/08/2024')" class="p-3.5 bg-[#FAF9FE] hover:bg-[#F0ECFC] rounded-2xl border border-[#E3DFFA] flex items-center justify-between cursor-pointer transition-all">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 rounded-xl bg-[#ECE0FD] text-[#6B52ED] flex items-center justify-center text-xs font-bold">
+                                                <i class="fa-regular fa-file-lines"></i>
+                                            </div>
+                                            <span class="text-xs font-semibold text-[#2D284C]">Data: 26/08/2024</span>
+                                        </div>
+                                        <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- MODAL POPUP CONTAINER -->
+    <div id="appModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center hidden transition-all duration-300">
+        <div class="bg-white w-11/12 max-w-md p-6 rounded-3xl shadow-2xl border border-[#E3DFFA] transform scale-95 transition-all" id="modalBox">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="modalTitle" class="font-bold text-lg text-[#2D284C]">Título</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="modalBody" class="text-sm text-slate-600 mb-6 space-y-3">
+                Conteúdo...
+            </div>
+            <div class="flex justify-end">
+                <button onclick="closeModal()" class="px-5 py-2.5 bg-[#6B52ED] hover:bg-[#5B42DD] text-white font-semibold text-sm rounded-xl transition-all shadow-sm">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const patientsData = {
+            lucas: {
+                name: 'Lucas',
+                age: '5 anos',
+                condition: 'Distúrbio Fonológico'
+            },
+            sabrina: {
+                name: 'Sabrina',
+                age: '6 anos',
+                condition: 'Disfluência'
+            },
+            laura: {
+                name: 'Laura',
+                age: '4 anos',
+                condition: 'Atraso de Fala'
+            }
+        };
+
+        let isAudioPlaying = false;
+        let audioTimerInterval = null;
+
+        function hideSplash() {
+            const splash = document.getElementById('splash-screen');
+            splash.classList.add('opacity-0');
+            setTimeout(() => {
+                splash.style.display = 'none';
+            }, 500);
+        }
+
+        function switchView(viewName) {
+            const pacientesList = document.getElementById('view-pacientes-list');
+            const pacienteDetail = document.getElementById('view-paciente-detail');
+
+            if (viewName === 'pacientes') {
+                pacientesList.classList.remove('hidden');
+                pacienteDetail.classList.add('hidden');
+                stopAudio();
+            }
+        }
+
+        function openPatientDetail(patientKey) {
+            const patient = patientsData[patientKey] || patientsData['lucas'];
+            
+            document.getElementById('patient-detail-name').innerText = patient.name;
+            document.getElementById('patient-detail-age').innerText = patient.age;
+            document.getElementById('patient-detail-condition').innerText = patient.condition;
+
+            document.getElementById('view-pacientes-list').classList.add('hidden');
+            document.getElementById('view-paciente-detail').classList.remove('hidden');
+        }
+
+        function openModal(title, bodyHtml) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerHTML = bodyHtml;
+
+            const modal = document.getElementById('appModal');
+            const box = document.getElementById('modalBox');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('appModal');
+            const box = document.getElementById('modalBox');
+
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function openFeatureModal(feature) {
+            openModal(feature, `
+                <p>A funcionalidade <strong>"${feature}"</strong> utiliza processamento fonoaudiológico em inteligência artificial para sumarizar os registros de fala e fonemas automaticamente.</p>
+            `);
+        }
+
+        function openHelpModal() {
+            openModal('Estamos aqui para ajudar', `
+                <p>Precisa de suporte na plataforma <strong>SMART FONO</strong>?</p>
+                <p class="text-xs text-slate-400">Entre em contato diretamente com nossos especialistas pelo suporte@smartfono.com.br</p>
+            `);
+        }
+
+        function openNewPatientModal() {
+            openModal('Novo Paciente', `
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Nome do paciente</label>
+                        <input type="text" id="new-p-name" placeholder="Ex: Gabriel" class="w-full px-3.5 py-2 border border-[#E3DFFA] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6B52ED]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Idade</label>
+                        <input type="text" id="new-p-age" placeholder="Ex: 5 anos" class="w-full px-3.5 py-2 border border-[#E3DFFA] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6B52ED]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Condição</label>
+                        <input type="text" id="new-p-cond" placeholder="Ex: Troca Fonológica" class="w-full px-3.5 py-2 border border-[#E3DFFA] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6B52ED]">
+                    </div>
+                    <button onclick="saveNewPatient()" class="w-full py-2.5 bg-[#6B52ED] text-white font-semibold rounded-xl text-sm shadow-md hover:bg-[#5B42DD] transition-all">Salvar Paciente</button>
+                </div>
+            `);
+        }
+
+        function saveNewPatient() {
+            const name = document.getElementById('new-p-name').value || 'Gabriel';
+            const age = document.getElementById('new-p-age').value || '5 anos';
+            const cond = document.getElementById('new-p-cond').value || 'Acompanhamento';
+
+            const grid = document.getElementById('patientsGrid');
+            const cardHtml = `
+                <div onclick="openPatientDetail('lucas')" class="folder-card folder-purple p-6 cursor-pointer flex flex-col items-center text-center">
+                    <div class="w-full flex justify-end text-slate-300 hover:text-slate-600 mb-1">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </div>
+                    <div class="w-20 h-20 rounded-full bg-[#ECE0FD] flex items-center justify-center mb-3 overflow-hidden border-2 border-white shadow-sm">
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                            <circle cx="50" cy="50" r="50" fill="#E8D9FF"/>
+                            <path d="M 25,85 C 25,65 35,60 50,60 C 65,60 75,65 75,85 Z" fill="#6B52ED"/>
+                            <circle cx="50" cy="45" r="22" fill="#FFD5C2"/>
+                            <circle cx="43" cy="45" r="2.5" fill="#2D284C"/>
+                            <circle cx="57" cy="45" r="2.5" fill="#2D284C"/>
+                            <path d="M 44,54 Q 50,58 56,54" stroke="#E57373" stroke-width="2" stroke-linecap="round" fill="none"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-lg text-[#2D284C]">${name}</h3>
+                    <p class="text-xs font-medium text-slate-400 mt-0.5">${age}</p>
+                    <p class="text-xs font-semibold text-slate-500 mt-2">${cond}</p>
+                </div>
+            `;
+            grid.insertAdjacentHTML('afterbegin', cardHtml);
+            closeModal();
+        }
+
+        function openEditPatientModal() {
+            openModal('Editar dados', `
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Nome</label>
+                        <input type="text" value="Lucas" class="w-full px-3.5 py-2 border border-[#E3DFFA] rounded-xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Diagnóstico</label>
+                        <input type="text" value="Distúrbio Fonológico" class="w-full px-3.5 py-2 border border-[#E3DFFA] rounded-xl text-sm">
+                    </div>
+                    <button onclick="closeModal()" class="w-full py-2.5 bg-[#6B52ED] text-white font-semibold rounded-xl text-sm">Salvar Alterações</button>
+                </div>
+            `);
+        }
+
+        function toggleAudioPlay() {
+            const icon = document.getElementById('audioPlayIcon');
+            const timer = document.getElementById('audioTimer');
+
+            isAudioPlaying = !isAudioPlaying;
+
+            if (isAudioPlaying) {
+                icon.classList.remove('fa-play');
+                icon.classList.add('fa-pause');
+
+                let seconds = 0;
+                audioTimerInterval = setInterval(() => {
+                    seconds++;
+                    let mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                    let secs = (seconds % 60).toString().padStart(2, '0');
+                    timer.innerText = `${mins}:${secs} / 02:15`;
+                    if (seconds >= 135) stopAudio();
+                }, 1000);
+            } else {
+                stopAudio();
+            }
+        }
+
+        function stopAudio() {
+            isAudioPlaying = false;
+            clearInterval(audioTimerInterval);
+            const icon = document.getElementById('audioPlayIcon');
+            if (icon) {
+                icon.classList.remove('fa-pause');
+                icon.classList.add('fa-play');
+            }
+        }
+
+        function triggerMicRecord() {
+            openModal('Microfone Gravando', `
+                <div class="text-center py-4 space-y-3">
+                    <div class="w-16 h-16 bg-[#ECE0FD] text-[#6B52ED] rounded-full flex items-center justify-center mx-auto text-2xl animate-pulse">
+                        <i class="fa-solid fa-microphone"></i>
+                    </div>
+                    <p class="font-bold text-[#2D284C]">Capturando emissão oral...</p>
+                    <p class="text-xs text-slate-400">Fale com clareza para a gravação dos fonemas.</p>
+                </div>
+            `);
+        }
+
+        function openSubDetail(title) {
+            openModal(title, `
+                <p>Resumo de ocorrências para <strong>${title}</strong>:</p>
+                <ul class="text-xs space-y-1.5 text-slate-500 pt-2">
+                    <li>• Análise fonética completa realizada em 17/08/2024.</li>
+                    <li>• Substituição de /r/ por /l/ identificada no início das sílabas.</li>
+                </ul>
+            `);
+        }
+
+        function openProntuarioDetail(dateStr) {
+            openModal(`Prontuário - ${dateStr}`, `
+                <p class="text-xs text-slate-400 mb-2">Relatório clínico gravado na data ${dateStr}</p>
+                <p>Atendimento de fonoaudiologia realizado com auxílio de atividades lúdicas e gravação de áudio contínua.</p>
+            `);
+        }
+
+        function addProntuarioItem() {
+            const list = document.getElementById('prontuario-list');
+            const today = new Date().toLocaleDateString('pt-BR');
+            const html = `
+                <div onclick="openProntuarioDetail('${today}')" class="p-3.5 bg-[#FAF9FE] hover:bg-[#F0ECFC] rounded-2xl border border-[#E3DFFA] flex items-center justify-between cursor-pointer transition-all">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-[#ECE0FD] text-[#6B52ED] flex items-center justify-center text-xs font-bold">
+                            <i class="fa-regular fa-file-lines"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-[#2D284C]">Data: ${today}</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+                </div>
+            `;
+            list.insertAdjacentHTML('afterbegin', html);
+        }
+
+        function selectTimeline(dateStr) {
+            openModal(`Sessão ${dateStr}`, `
+                <p>Atendimento referente a <strong>${dateStr}/2024</strong>.</p>
+            `);
+        }
+
+        function filterPatients() {
+            const query = document.getElementById('patientSearch').value.toLowerCase();
+            const cards = document.querySelectorAll('#patientsGrid .folder-card');
+            
+            cards.forEach(card => {
+                const name = card.querySelector('h3').innerText.toLowerCase();
+                if (name.includes(query)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
